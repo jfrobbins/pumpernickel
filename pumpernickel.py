@@ -196,10 +196,6 @@ class Pumpernickel():
         
         print('startup is finished')
 
-
-    #~ pump.set_nickname('jrobb')
-    #~ print('nickname was set')
-#~ 
     #~ print('attempting to post note:')
     #pump.post_note("one last test post (from python), using this libstuff: https://github.com/xray7224/PyPump ")
     #~ if postContent != '':
