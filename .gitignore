@@ -1,6 +1,3 @@
 *.py[cod]
 *__pycache__*
-PyPump/*.py[cod]
-PyPump/*__pycache__*
-oauth/*.py[cod]
-oauth/*__pycache__*
+PyPump/.gitignore
