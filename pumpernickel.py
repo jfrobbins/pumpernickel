@@ -18,11 +18,28 @@ class Pumpernickel():
         self.oauth_client_secret = None
         self.configFile = None
         self.config = None
+        self.pump = None
         
         if not self.checkConfigFile():
             self.doSetup()
 
+        self.args = args
         
+
+
+    def doArgActions(self, args):
+        print('looking through the arguments')
+        for arg in args:
+            if '--debug' in arg:
+                self.debugMode = True
+            elif '--followersfile=' in arg.lower():
+                #read a line-delimited file of users,
+                #   and follow them all
+                followersFile = arg.split('=')[1]
+                self.followUsersFromFile(followersFile)
+            elif '--setup' in arg.lower():
+                #re-authenticate and all that
+                self.doSetup()
 
     def checkConfigFile(self):
         self.configFile = os.path.join(os.environ['HOME'],'.config',self.client_name.lower())
@@ -40,13 +57,15 @@ class Pumpernickel():
 
     def doSetup(self):
         self.webfinger = input('Enter your webfinger ID (ie. "jrobb@microca.st", no quotes):')
-        if '@' not in self.user:
+        if '@' not in self.webfinger:
             print('not a valid webfinger address')
             return False
 
         self.user, self.server = self.webfinger.split('@')
 
         self.pump = PyPump(self.webfinger, client_name=self.client_name)
+
+        self.pump.set_nickname(self.user)
         
         registration = self.pump.get_registration()  #return (self.consumer.key, self.consumer.secret, self.consumer.expirey)
         self.oauth_client_id = registration[0]
@@ -142,9 +161,39 @@ class Pumpernickel():
 
         print('done reading config file.  loaded.')
 
+    def followUsersFromFile(self, inFile):
+        if self.pump == None:
+            print('pump is not authorized yet')
+            return
+            
+        if not os.path.isfile(inFile):
+            print(inFile + ' is not a valid file.')
+            sys.exit()
+        
+        with open(inFile, 'r') as f:
+            print("file is opened")
+            sfile = f.readlines() #read the lines into a list
+            f.close()
+        
+        if not sfile:
+            print('file could not be read')
+            return
+            
+        for userToFollow in sfile:
+            print('trying to sub: ' + userToFollow)
+            self.pump.follow(userToFollow)
+
+        print('done subbing')
+        
+
     def run(self):
         print('running')
         self.readConfig()
+        
+        if self.args:
+            self.doArgActions(self.args)
+            del self.args
+        
         print('startup is finished')
 
 
